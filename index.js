@@ -6,7 +6,7 @@ const io = socket();
 io.attach(server);
 
 app.use(express.static('dist'));
-server.listen(3000);
+server.listen(80);
 
 var id = 1;
 
