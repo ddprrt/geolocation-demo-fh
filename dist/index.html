@@ -1,0 +1,90 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Webapp</title>
+  <style media="screen">
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="map">
+
+  </div>
+  <script src="socket.io.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js"></script>
+  <script type="text/javascript">
+
+
+  var marker = {};
+
+  function initMap(latlng) {
+    // Create a map object and specify the DOM element for display.
+    var map = new google.maps.Map(document.getElementById('map'), {
+      center: latlng,
+      scrollwheel: false,
+      zoom: 9
+    });
+
+    marker['mymarker'] = new google.maps.Marker({
+      map: map,
+      position: latlng,
+      title: 'I AM HERE'
+    });
+
+    return map;
+
+  }
+
+  var socket = io.connect(window.location.host);
+
+
+  navigator.geolocation.getCurrentPosition(function(pos) {
+
+    var latlng = {
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude
+    };
+
+    var map = initMap(latlng);
+
+    navigator.geolocation.watchPosition(function(pos) {
+      var latlng = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude
+      };
+      marker['mymarker'].setMap(null);
+      marker['mymarker'] = new google.maps.Marker({
+        map: map,
+        position: latlng,
+        title: 'I AM HERE'
+      });
+
+      socket.emit('datain', latlng);
+
+    }, function(err) {}, { enableHighAccuracy: true });
+
+    socket.on('dataout', function(coords) {
+      var label = coords.label.toString();
+      if(marker[label]) {
+        marker[label].setMap(null);
+      }
+      marker[label] = new google.maps.Marker({
+        map: map,
+        position: coords,
+        title: 'I AM HERE',
+        label: label
+      });
+    })
+
+  }, function(err) {}, { enableHighAccuracy: true });
+
+  </script>
+</body>
+</html>
